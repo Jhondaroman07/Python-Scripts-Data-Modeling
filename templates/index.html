@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejecutor de Scripts Python</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .message {
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .error {
+            background: #ffdddd;
+            border-left: 4px solid #f44336;
+        }
+        .success {
+            background: #ddffdd;
+            border-left: 4px solid #4CAF50;
+        }
+        .download-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .download-link:hover {
+            text-decoration: underline;
+        }
+        #file-list {
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px dashed #ccc;
+            min-height: 20px;
+        }
+        .file-item {
+            margin: 5px 0;
+            padding: 3px;
+            background: #f0f0f0;
+            border-radius: 3px;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .reload-btn {
+            background: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ejecutor de Scripts Python</h1>
+        <h2>Limpieza Datos Reporting & BI</h2>
+        <h3>John D Castaño</h3>
+        {% if error %}
+        <div class="message error">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="message success">
+            {{ success }}
+            {% if download_file %}
+            <a href="{{ url_for('download_file', filename=download_file) }}" class="download-link" id="download-link">
+                Descargar resultados
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <form method="POST" enctype="multipart/form-data" id="upload-form">
+            <div class="form-group">
+                <label for="script_name">Selecciona el script a ejecutar:</label>
+                <select name="script_name" id="script_name" required>
+                    <option value="">-- Selecciona un script --</option>
+                    {% for script in scripts %}
+                    <option value="{{ script }}" {% if script == selected_script %}selected{% endif %}>{{ script }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="files">Sube tus archivos CSV (múltiples):</label>
+                <input type="file" name="files[]" id="files" accept=".csv" multiple required>
+                <div id="file-list"></div>
+            </div>
+            
+            <div class="actions">
+                <button type="submit">Ejecutar Script</button>
+                <button type="button" class="reload-btn" onclick="location.reload()">Nuevo Proceso</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Mostrar lista de archivos seleccionados
+        document.getElementById('files').addEventListener('change', function(e) {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            
+            if (this.files.length > 0) {
+                const header = document.createElement('div');
+                header.textContent = `Archivos seleccionados: ${this.files.length}`;
+                fileList.appendChild(header);
+                
+                for (let i = 0; i < this.files.length; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.textContent = this.files[i].name;
+                    fileList.appendChild(item);
+                }
+            }
+        });
+
+        // Detectar cuando se hace clic en el enlace de descarga
+        const downloadLink = document.getElementById('download-link');
+        if (downloadLink) {
+            downloadLink.addEventListener('click', function(e) {
+                // Esperar un tiempo razonable para que la descarga comience
+                setTimeout(function() {
+                    // Recargar la página después de 1 segundo (ajustable)
+                    window.location.href = "{{ url_for('index') }}";
+                }, 1000);
+            });
+        }
+    </script>
+</body>
+</html>
